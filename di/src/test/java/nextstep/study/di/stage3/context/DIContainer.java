@@ -2,10 +2,11 @@ package nextstep.study.di.stage3.context;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import nextstep.study.ConsumerWrapper;
+import nextstep.study.FunctionWrapper;
 
 /**
  * 스프링의 BeanFactory, ApplicationContext에 해당되는 클래스
@@ -19,58 +20,50 @@ class DIContainer {
         this.beans.forEach(this::setFields);
     }
 
+    // 기본 생성자로 빈을 생성한다.
     private Set<Object> createBeans(final Set<Class<?>> classes) {
         return classes.stream()
-                .map(this::createInstance)
+                .map(FunctionWrapper.apply(Class::getDeclaredConstructor))
+                .peek(it -> it.setAccessible(true))
+                .map(FunctionWrapper.apply(Constructor::newInstance))
                 .collect(Collectors.toSet());
     }
 
-    private Object createInstance(final Class<?> beanClass) {
-        try {
-            final Constructor<?> constructor = beanClass.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            return constructor.newInstance();
-        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException |
-                       NoSuchMethodException e) {
-            throw new RuntimeException("fail to create instance", e);
-        }
-    }
-
+    // 빈 내부에 선언된 필드를 각각 셋팅한다.
     private void setFields(final Object bean) {
         final Field[] fields = bean.getClass().getDeclaredFields();
         for (final Field field : fields) {
-            field.setAccessible(true);
             final Class<?> fieldType = field.getType();
-            if (isNotInitializedField(bean, field)) {
-                initializeField(bean, field, fieldType);
-            }
+            field.setAccessible(true);
+
+            setField(bean, field, fieldType);
         }
     }
 
-    private boolean isNotInitializedField(final Object bean, final Field field) {
+    // 값이 할당되지 않는 각 필드에 빈을 대입(assign)한다.
+    private void setField(final Object bean, final Field field, final Class<?> fieldType) {
+        if (isInitializedField(bean, field)) {
+            return;
+        }
+
+        beans.stream()
+                .filter(fieldType::isInstance)
+                .forEach(ConsumerWrapper.accept(matchBean -> field.set(bean, matchBean)));
+    }
+
+    private boolean isInitializedField(final Object bean, final Field field) {
         try {
-            return field.get(bean) == null;
+            return field.get(bean) != null;
         } catch (final IllegalAccessException e) {
             throw new RuntimeException("fail to access field", e);
         }
     }
 
-    private void initializeField(final Object bean, final Field field, final Class<?> fieldType) {
-        for (final Object b : beans) {
-            if (fieldType.isAssignableFrom(b.getClass())) {
-                try {
-                    field.set(bean, b);
-                } catch (final IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-    }
-
+    // 빈 컨테이너(DI)에서 관리하는 빈을 찾아서 반환한다.
     @SuppressWarnings("unchecked")
     public <T> T getBean(final Class<T> aClass) {
         return (T) beans.stream()
-                .filter(it -> aClass.isAssignableFrom(it.getClass()))
+                .filter(aClass::isInstance)
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("fail to find bean"));
     }
