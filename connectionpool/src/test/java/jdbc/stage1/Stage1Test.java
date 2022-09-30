@@ -28,7 +28,7 @@ class Stage1Test {
      */
     @Test
     void testJdbcConnectionPool() throws SQLException {
-        final JdbcConnectionPool jdbcConnectionPool = null;
+        final JdbcConnectionPool jdbcConnectionPool = JdbcConnectionPool.create(H2_URL, USER, PASSWORD);
 
         assertThat(jdbcConnectionPool.getActiveConnections()).isZero();
         try (final var connection = jdbcConnectionPool.getConnection()) {
@@ -61,9 +61,16 @@ class Stage1Test {
     @Test
     void testHikariCP() {
         final var hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl(H2_URL);
+        hikariConfig.setUsername(USER);
+        hikariConfig.setPassword(PASSWORD);
 
         final var dataSource = new HikariDataSource(hikariConfig);
         final var properties = dataSource.getDataSourceProperties();
+        dataSource.setMaximumPoolSize(5);
+        properties.setProperty("cachePrepStmts", "true");
+        properties.setProperty("prepStmtCacheSize", "250");
+        properties.setProperty("prepStmtCacheSqlLimit", "2048");
 
         assertThat(dataSource.getMaximumPoolSize()).isEqualTo(5);
         assertThat(properties.getProperty("cachePrepStmts")).isEqualTo("true");
