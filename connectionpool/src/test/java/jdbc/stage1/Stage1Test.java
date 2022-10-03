@@ -64,13 +64,13 @@ class Stage1Test {
         hikariConfig.setJdbcUrl(H2_URL);
         hikariConfig.setUsername(USER);
         hikariConfig.setPassword(PASSWORD);
+        hikariConfig.setMaximumPoolSize(5);
+        hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
         final var dataSource = new HikariDataSource(hikariConfig);
         final var properties = dataSource.getDataSourceProperties();
-        dataSource.setMaximumPoolSize(5);
-        properties.setProperty("cachePrepStmts", "true");
-        properties.setProperty("prepStmtCacheSize", "250");
-        properties.setProperty("prepStmtCacheSqlLimit", "2048");
 
         assertThat(dataSource.getMaximumPoolSize()).isEqualTo(5);
         assertThat(properties.getProperty("cachePrepStmts")).isEqualTo("true");

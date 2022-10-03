@@ -2,6 +2,7 @@ package jdbc.stage2;
 
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
+import jdbc.DataSourceConfig;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ class Stage2Test {
         }
 
         // 동시에 많은 요청이 몰려도 최대 풀 사이즈를 유지한다.
-        assertThat(hikariPool.getTotalConnections()).isEqualTo(5);
+        assertThat(hikariPool.getTotalConnections()).isEqualTo(DataSourceConfig.MAXIMUM_POOL_SIZE);
 
         // DataSourceConfig 클래스에서 직접 생성한 커넥션 풀.
         assertThat(hikariDataSource.getPoolName()).isEqualTo("gugu");
