@@ -4,7 +4,7 @@
 
 ### JDBC 드라이버를 사용하여 데이터베이스에 연결하는 방법
 - JDBC(Java Database Connectivity)란, 자바에서 데이터베이스에 접속할 수 있도록 하는 자바 API
-- 를 사용하면 데이터 소스와 연결하고 쿼리와 업데이트 문을 보내고 결과를 처리 가능. 자
+- 를 사용하면 데이터 소스와 연결하고 쿼리와 업데이트 문을 보내고 결과를 처리 가능. 
 - Java 애플리케이션이 JDBC 클래스와 인터페이스를 호출하여 SQL 문을 제출하고 결과를 검색
 - JDBC API는 JDBC 드라이버를 통해 구현  
 - JDBC 모델 구성 요소 ⬇️
@@ -27,13 +27,19 @@
   - JDBC 4.0 부터 DriverManager가 적절한 JDBC 드라이버를 찾는다.
 - DataSource
   - 데이터베이스, 파일 같은 물리적 데이터 소스에 연결할 때 사용하는 인터페이스.  
-  - 구현체는 각 vendor에서 제공한다.
+  - 구현체는 각 드라이버 vendor에서 제공한다. 특정 DataSource 객체는 특정 물리적인 데이터 소스를 나타내며 객체가 생성하는 각각의 연결은 해당 물리적인 소스에 대한 연결이다.
 - DirverManager가 아닌 DataSource를 사용하는 이유
   - 애플리케이션 코드를 직접 수정하지 않고 properties로 디비 연결을 변경할 수 있다.
-  - 커넥션 풀링(Connection pooling) 또는 분산 트랜잭션은 DataSource를 통해서 사용 가능하다.
+  - connection과 statement 풀링(Connection and Statement pooling) 또는 분산 트랜잭션은 DataSource를 통해서 사용 가능하다. DriverManager를 통해 생성된 connection은 해당 기능이 없다.
+- DataSource 객체를 사용해서 connection을 생성하는 방법
+  - 데이터 소스에 대한 논리적인 이름은 시스템 관리자에 의해 네이밍 서비스에 등록된다. 애플리케이션은 등록된 논리적 이름으로 DataSource 객체를 검색할 수 있다. 이후 DataSource 객체를 통해 connection을 만들고 물리적인 데이터 소스를 확인 가능하다.
+  - 
 
 ## 1단계 - 커넥션 풀링
-- 커넥션 풀링이란? `JdbcConnectionPool`
+- 커넥션 풀링이란?
+  - DataSource 객체를 통해 미리 커넥션(Connection)을 만들어 두는 것을 의미한다.
+  - 새로운 커넥션을 생성하는 것은 많은 비용이 들기에 미리 커넥션을 만들어두면 성능상 이점이 있다.
+  - 커넥션 풀링에 미리 만들어둔 커넥션은 재사용 가능하다.
 - 왜 스프링 부트에서 HikariCP를 사용할까
 - HikariCP에 어떤 설정을 하면 좋을까
 
