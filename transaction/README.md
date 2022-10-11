@@ -39,4 +39,11 @@
   - Read Committed
   - Repeatable Read
   - Serializable
+- 격리 레벨에 따라 발생하는 현상
 
+| 격리레벨 / 발생 현상 | Dirty reads | Non-repeatable reads | Phantom reads |
+-----------------|-------------|----------------------|---------------|
+Read Uncommitted | O           | O                    | O             |
+Read Committed   | X           | O                    | O             |
+Repeatable Read  | X           | X                    | O             |
+Serializable     | X           | X                    | X             |
