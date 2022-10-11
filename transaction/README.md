@@ -41,9 +41,34 @@
   - Serializable
 - 격리 레벨에 따라 발생하는 현상
 
-| 격리레벨 / 발생 현상 | Dirty reads | Non-repeatable reads | Phantom reads |
------------------|-------------|----------------------|---------------|
-Read Uncommitted | O           | O                    | O             |
-Read Committed   | X           | O                    | O             |
-Repeatable Read  | X           | X                    | O             |
-Serializable     | X           | X                    | X             |
+| 격리레벨 / 발생 현상     | Dirty reads | Non-repeatable reads | Phantom reads |
+|------------------|-------------|----------------------|---------------|
+ | Read Uncommitted | O           | O                    | O             |
+ | Read Committed   | X           | O                    | O             |
+ | Repeatable Read  | X           | X                    | O             |
+ | Serializable     | X           | X                    | X             |
+
+## Propagation
+트랜잭션의 경계에서 이미 진행 중인 트랜잭션이 있을 때 또는 없을 때 어떻게 동작할 것인가를 결정하는 방식
+
+### 종류
+- REQUIRED
+  - 트랜잭션이 있으면 참여하고, 없으면 새로 시작
+  - 두 메서드가 하나의 트랜잭션으로 실행되므로 어느 메서드에서 문제가 발생해도, 실행한 모든 데이터가 롤백
+- REQUIRES_NEW
+  - 항상 새로운 트랜잭션을 시작
+  - 만약 REQUIRES_NEW가 아닌 다른 트랜잭션에서 오류가 터져도 새로운 트랜잭션이므로 롤백에 영향을 받지 않음
+- SUPPORTS
+  - 트랜잭션이 존재하는 경우 참여
+  - 기존에 존재하는 트랜잭션이 없는 경우, 트랜잭션을 생성하지만 active는 false
+- MANDATORY
+  - 이미 트랜잭션이 존재하는 경우 참여하고 그렇지 않을 경우 예외 발생
+- NOT_SUPPORTED
+  - 트랜잭션을 사용하지 않게 한다.(보류)
+  - 기존에 존재하는 트랜잭션이 없는 경우, 트랜잭션을 생성하지만 active는 false
+- NESTED
+  - JPA에서 지원하지 않는다. 변경감지를 통해서 업데이트문을 최대한 지연해서 발행하는 방식을 사용하기 때문에 중첩된 트랜잭션 경계를 설정할 수 없다.
+  - 기존에 존재하는 트랜잭션이 없는 경우, active 트랜잭션을 생성
+- Never
+  - 트랜잭션이 존재하는 경우 예외를 발생
+  - 기존에 존재하는 트랜잭션이 없는 경우, 트랜잭션을 생성하지만 active는 false
